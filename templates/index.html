@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Listings</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>Job Listings</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Company Name</th>
+                <th>Location</th>
+                <th>Experience Min</th>
+                <th>Experience Max</th>
+                <th>Key Skills</th>
+                <th>Published On</th>
+                <th>Expiry Date</th>
+                <th>Views</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for job in jobs %}
+            <tr>
+                <td>{{ job['Title'] }}</td>
+                <td>{{ job['Company Name'] }}</td>
+                <td>{{ job['Location'] }}</td>
+                <td>{{ job['Experience Min'] }}</td>
+                <td>{{ job['Experience Max'] }}</td>
+                <td>{{ job['Key Skills'] }}</td>
+                <td>{{ job['Published On'] }}</td>
+                <td>{{ job['Expiry Date'] }}</td>
+                <td>{{ job['Views'] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
