@@ -1,10 +1,40 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 import requests
-import pandas as pd
+import mysql.connector
 
 app = Flask(__name__)
+application = app
+# Function to establish connection to the MySQL database
+def connect_to_db():
+    return mysql.connector.connect(
+        host="localhost",
+        user="root",
+        password="",
+        database="job_database"
+    )
 
-def fetch_job_data():
+# Function to insert job data into MySQL
+def insert_job_data_to_db(job_data):
+    conn = connect_to_db()
+    cursor = conn.cursor()
+
+    for job in job_data:
+        sql = """
+            INSERT INTO jobs (title, company_name, location, exp_min, exp_max, key_skills, publish_on, job_expiry, views)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """
+        values = (
+            job['Title'], job['Company Name'], job['Location'], job['Experience Min'],
+            job['Experience Max'], job['Key Skills'], job['Published On'],
+            job['Expiry Date'], job['Views']
+        )
+        cursor.execute(sql, values)
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+def fetch_job_data(search_key='', location=''):
     headers = {
         'Accept': 'application/json, text/plain, */*',
         'Accept-Language': 'en-US,en;q=0.9',
@@ -33,8 +63,8 @@ def fetch_job_data():
         'industry': None,
         'jobType': None,
         'exp': None,
-        'location': 'Kathmandu',
-        'searchKey': 'Manager',
+        'location': location,
+        'searchKey': search_key,
     }
 
     response = requests.post('https://api.v1.jobejee.com/v2/jobSearch', params=params, headers=headers, json=json_data)
@@ -56,11 +86,18 @@ def fetch_job_data():
         }
         job_list.append(job_details)
 
+    # Insert job data into MySQL
+    insert_job_data_to_db(job_list)
+
     return job_list
 
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def index():
-    job_data = fetch_job_data()
+    job_data = []
+    if request.method == 'POST':
+        search_key = request.form.get('search_key')
+        location = request.form.get('location')
+        job_data = fetch_job_data(search_key, location)
     return render_template('index.html', jobs=job_data)
 
 if __name__ == '__main__':
